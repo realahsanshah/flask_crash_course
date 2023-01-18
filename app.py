@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
@@ -8,6 +8,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'
 
 db = SQLAlchemy(app)
 
+todoList = []
 class Todo(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     content = db.Column(db.String(200),nullable=False)
@@ -17,9 +18,28 @@ class Todo(db.Model):
     def __repr__(self):
         return f"<Task {self.id}>"
 
-@app.route('/')
+
+@app.route('/',methods=['GET','POST'])
 def index():
-    return render_template('index.html')
+    if request.method == 'POST':
+        task_content = request.form['content']
+        print(task_content)
+        data = dict()
+        data['id'] = len(todoList)+1
+        data['content'] = task_content
+        data['completed'] = False
+        data['date_created'] = datetime.utcnow()
+
+        todoList.append(data)
+        return redirect('/')
+    else:
+        return render_template('index.html')
+
+
+@app.route('/getdata',methods=['GET'])
+def getData():
+    print(todoList)
+    return todoList[0]['content']
 
 print("App is ready")
 
